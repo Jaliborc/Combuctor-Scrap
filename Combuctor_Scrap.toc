@@ -1,0 +1,11 @@
+## Interface: 70300
+## Title: |cff5FC412Combuctor Scrap|r
+## Notes: Adds a Scrap subcategory to Combuctor and makes your Scrap to glow
+## Author: Jaliborc (João Cardoso)
+## X-Category: Inventory
+## X-License: GNU General Public License Version 3
+## Dependencies: Scrap, Combuctor
+## OptionalDeps: Combuctor_Sets
+## Version: 14
+
+Combuctor_Scrap.lua
