@@ -1,6 +1,6 @@
 --[[
-Copyright 2008-2017 João Cardoso
-Combuctor Scrap is distributed under the terms of the GNU General Public License (Version 3).
+Copyright 2008-2020 João Cardoso
+Bagnon Scrap is distributed under the terms of the GNU General Public License (Version 3).
 As a special exception, the copyright holders of this addon do not give permission to
 redistribute and/or modify it.
 
@@ -12,55 +12,42 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with the addon. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 
-This file is part of Combuctor Scrap.
+This file is part of Bagnon Scrap.
 --]]
 
-local Addon = Combuctor
-local ItemSlot = Addon.ItemSlot
-local UpdateBorder = ItemSlot.UpdateBorder
-local r, g, b  = GetItemQualityColor(0)
+local Plugin = Scrap:NewModule('Wildpants')
+local Addon = Bagnon or Combuctor
 
 
---[[ Ruleset ]]--
+--[[ API Usage ]]--
 
-Addon.Rules:New('scrap', 'Scrap', 'Interface\\Addons\\Scrap\\Art\\Enabled Box', function(player, bag, slot, bagLink, itemLink)
-	if itemLink and bag and slot then
-		return Scrap:IsJunk(tonumber(strmatch(itemLink, 'item:(%d+)')), bag, slot)
+Plugin:RegisterSignal('LIST_CHANGED', function()
+	Addon.Frames:Update()
+end)
+
+Addon.Rules:New('scrap', 'Scrap', 'Interface/Addons/Scrap/art/enabled-box', function(_, bag, slot, _, item)
+	if item.id and bag and slot then
+		return Scrap:IsJunk(item.id, bag, slot)
 	end
 end)
 
 
---[[ Glow and Icon ]]--
+--[[ Extension ]]--
 
-function ItemSlot:UpdateBorder()
-	local link = select(7, self:GetInfo())
-	if link then
-		local id = tonumber(strmatch(link, 'item:(%d+)'))
-		local bag, slot
+local UpdateBorder = Addon.Item.UpdateBorder
+local R,G,B = GetItemQualityColor(0)
 
-		if not self:IsCached() then
-			bag, slot = self:GetBag(), self:GetID()
-		end
-
-		if Scrap:IsJunk(id, bag, slot) then
-			self:HideBorder()
-			self:SetBorderColor(r, g, b)
-
-			return self.JunkIcon:SetShown(Scrap_Icons)
-		end
-	end
+function Addon.Item:UpdateBorder()
+	local online = not self.info.cached
+	local junk = Scrap:IsJunk(self.info.id, online and self:GetBag(), online and self:GetID())
 
 	UpdateBorder(self)
-	self.JunkIcon:Hide()
+	self.JunkIcon:SetShown(Scrap.sets.icons and junk)
+
+	if Scrap.sets.glow and junk then
+		self.IconBorder:SetVertexColor(R,G,B)
+		self.IconBorder:Show()
+		self.IconGlow:SetVertexColor(R,G,B, Addon.sets.glowAlpha)
+		self.IconGlow:Show()
+	end
 end
-
-
---[[ Update Events ]]--
-
-local function UpdateBags()
-	Addon:UpdateFrames()
-end
-
-hooksecurefunc(Scrap, 'SettingsUpdated', UpdateBags)
-hooksecurefunc(Scrap, 'ToggleJunk', UpdateBags)
-Scrap.HasSpotlight = true
